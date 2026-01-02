@@ -1,0 +1,107 @@
+/* Cards container */
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;           /* allow multiple rows */
+    gap: 20px;                 /* space between cards */
+    justify-content: center;   /* center the cards horizontally */
+    margin-top: 20px;
+    width: 100%;               /* full width for responsiveness */
+}
+
+/* Employee card */
+.employee-card {
+    background-color: #ffffff;
+    width: 280px;              /* fixed card width */
+    padding: 20px;
+    border-radius: 12px;
+    text-align: left;          /* labels/input left-aligned */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    margin: 0;                 /* reset any old margin */
+}
+
+/* Card hover effect */
+.employee-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Card fields */
+.card-field {
+    display: flex;
+    justify-content: space-between;
+}
+
+.card-field label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #1f2937;
+    font-size: 0.95rem;
+}
+
+/* Inputs and selects inside card */
+.card-input,
+.card-select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.95rem;
+    transition: border 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+    background-color: #ffffff;
+}
+
+/* Hover and focus effects */
+.card-input:hover,
+.card-select:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.3);
+    transform: translateY(-1px);
+}
+
+.card-input:focus,
+.card-select:focus {
+    border-color: #2563eb;
+    outline: none;
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+}
+
+/* Update button */
+.update-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    background-color: #10b981;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.update-btn:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+}
+
+/* Loading / No data text */
+.loading-text,
+.no-data-text {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .cards-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .employee-card {
+        width: 90%;
+    }
+}

@@ -1,0 +1,61 @@
+.employee-container {
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f6f8;
+}
+
+.employee-card {
+  background: #fff;
+  width: 350px;
+  padding: 20px;
+  margin: 1px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(30, 9, 9, 0.1);
+}
+
+.employee-avatar {
+    width: 102px;
+    height: 146px;
+  border-radius: 50%;
+  object-fit: cover;
+  padding: 5px;
+  margin-bottom: 15px;
+}
+
+.employee-name {
+  margin: 5px 0;
+  font-size: 32px;
+}
+
+.employee-role {
+  color: #0a0909d2;
+  margin-bottom: 20px;
+  text-transform: capitalize;
+}
+
+.employee-info {
+  text-align: left;
+}
+
+.employee-info div {
+  display: flex;
+  justify-content: space-between;
+    padding: 1px;
+    margin: 0px 36px;
+  border-bottom: 1px solid #eee;
+}
+
+.employee-info span {
+  font-weight: 600;
+  color: #100303;
+}
+
+.employee-loading,
+.employee-error {
+  text-align: center;
+  margin-top: 50px;
+  font-size: 18px;
+}

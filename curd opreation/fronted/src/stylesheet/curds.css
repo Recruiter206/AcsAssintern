@@ -1,0 +1,95 @@
+/* Container for the form and list */
+.formCantainer {
+    background-color: #a0e7e5; /* soft aqua */
+    margin: 20px auto;
+    padding: 20px;
+    width: 400px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
+    font-family: Arial, sans-serif;
+}
+
+/* Form styling */
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.form input {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    width: 90%;
+}
+
+.form button {
+    padding: 10px 0;
+    border-radius: 5px;
+    border: none;
+    background-color: green;
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.form button:hover {
+    background-color: darkgreen;
+}
+
+/* User list */
+.user-list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+/* Each user item */
+.user-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f0f0f0;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Buttons inside list */
+.update_button,
+.delete_button {
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    margin-left: 5px;
+    transition: 0.3s;
+}
+
+/* Update button */
+.update_button {
+    background-color: skyblue;
+}
+
+.update_button:hover {
+    background-color: deepskyblue;
+}
+
+/* Delete button */
+.delete_button {
+    background-color: red;
+}
+
+.delete_button:hover {
+    background-color: darkred;
+}

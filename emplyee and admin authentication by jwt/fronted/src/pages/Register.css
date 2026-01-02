@@ -1,0 +1,168 @@
+/* Modal / Page container */
+.login-container,
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f6f8; /* page background */
+  padding: 20px;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Modal content wrapper */
+.modal-content .login-container,
+.modal-content .register-container {
+  background: transparent; /* overlay handles background */
+  min-height: auto;
+  padding: 0;
+}
+
+/* Forms */
+.login-form,
+.register-form {
+  background: #fff;
+  padding: 30px;
+  width: 100%;
+  max-width: 350px; /* modal-friendly width */
+  border-radius: 8px;
+
+  box-sizing: border-box;
+}
+
+/* Form title */
+.login-form h2,
+.register-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: #1e40af;
+}
+
+/* Inputs & selects */
+.login-form input,
+.register-form input,
+.login-form select,
+.register-form select {
+  width: 100%;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  outline: none;
+  box-sizing: border-box;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.login-form input:focus,
+.register-form input:focus,
+.login-form select:focus,
+.register-form select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+}
+
+/* Buttons */
+.login-form button {
+  background: #007bff;
+}
+
+.register-form button {
+  background: #28a745;
+}
+
+.login-form button,
+.register-form button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 15px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.login-form button:hover {
+  background: #0056b3;
+  transform: translateY(-1px);
+}
+
+.register-form button:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+/* Span links */
+.login-form span,
+.register-form span {
+  display: flex;
+  justify-content: center;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.lst {
+  color: rgb(40, 35, 35);
+}
+
+.lsts {
+  color: rgb(22, 63, 149);
+  text-decoration: underline;
+  margin-left: 4px;
+}
+
+/* Modal overlay */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+/* Close button inside modal */
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-form,
+  .register-form {
+           padding: 18px;
+        width: 102%;
+  }
+
+  .login-form h2,
+  .register-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .login-form input,
+  .register-form input,
+  .login-form select,
+  .register-form select {
+    padding: 8px;
+    font-size: 0.95rem;
+  }
+
+  .login-form button,
+  .register-form button {
+    font-size: 0.95rem;
+    padding: 8px;
+  }
+}
