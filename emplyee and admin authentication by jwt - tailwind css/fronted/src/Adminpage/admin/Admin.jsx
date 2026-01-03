@@ -2,7 +2,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../auth/AuthContext";
 import { Link } from "react-router-dom";
+import { 
 
+  ShieldCheck, 
+
+} from "lucide-react";
 const Admin = () => {
   const {
     user,
@@ -80,44 +84,21 @@ const Admin = () => {
 
   return (
     <div className="p-6 font-sans">
-      <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
-        Admin Dashboard
-      </h1>
-      <p className="text-center text-gray-600 mb-6">
-        Welcome to the Admin page! You have full access.
-      </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div className="justify-center ">
+            <div className="flex items-center gap-2 mb-1">
+              <ShieldCheck className="text-indigo-600 w-8 h-8" />
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">Admin Control</h1>
+            </div>
+            <p className="text-gray-500 font-medium text-sm">Manage staff members and roles</p>
+          </div>
+           </div>
+      
      <div className="flex flex-col md:flex-row  items-center mb-6 gap-4">
   {/* Action Buttons */}
 <div className="flex gap-6 mt-6">
 
-  {/* Assign Task */}
-  {/* <Link to="/assign"
-    className="cursor-pointer bg-blue-600 text-white p-6 rounded-2xl shadow-lg
-               hover:shadow-2xl hover:-translate-y-1 transition-all"
-  >
-    <h3 className="text-lg font-semibold">Assign Task</h3>
-    <p className="text-sm opacity-90 mt-1">Assign tasks to employees</p>
-  </Link>
-
-  {/* View All Tasks */}
-  {/* <Link to="/tasklist"
-    className="cursor-pointer bg-indigo-600 text-white p-6 rounded-2xl shadow-lg
-               hover:shadow-2xl hover:-translate-y-1 transition-all"
-  >
-    <h3 className="text-lg font-semibold">View All Tasks</h3>
-    <p className="text-sm opacity-90 mt-1">See how many tasks you have assigned</p>
-  </Link> */}
-
- 
-
-  {/* Update Attendance */}
-  {/* <Link to="/update"
-    className="cursor-pointer bg-green-600 text-white p-6 rounded-2xl shadow-lg
-               hover:shadow-2xl hover:-translate-y-1 transition-all"
-  >
-    <h3 className="text-lg font-semibold">Check Attendance</h3>
-    <p className="text-sm opacity-90 mt-1">Approve & reject attendance</p>
-  </Link> */} 
+  
 
 
 
@@ -127,7 +108,7 @@ const Admin = () => {
   
 </div>
 
-      {/* Search bar */}
+      
 
 
       {loading ? (

@@ -77,6 +77,49 @@ const addSubtask = (req, res) => {
 };
 
 // ---------------- UPDATE SUBTASK STATUS ----------------
+// const updateSubtask = (req, res) => {
+//     const subtask_id = req.params.id;
+//     const employeeId = req.user.id;
+//     const { status, employee_description } = req.body;
+
+//     if (!status) return res.status(400).json({ success: false, message: 'Status required' });
+
+//     const normalizedStatus = status.toLowerCase();
+//     const sql = `
+//         UPDATE SUBTASKS
+//         SET status = ?, employee_description = ?, updated_at = CURRENT_TIMESTAMP
+//         WHERE id = ? AND employee_id = ?
+//     `;
+
+//     db.run(sql, [normalizedStatus, employee_description || '', subtask_id, employeeId], function(err) {
+//         if (err) return res.status(500).json({ success: false, message: err.message });
+//         if (this.changes === 0) return res.status(404).json({ success: false, message: 'Subtask not found or not yours' });
+
+//         // Update TASK_ASSIGNMENTS status for this employee only
+//         db.get(`SELECT task_id FROM SUBTASKS WHERE id = ?`, [subtask_id], (err, row) => {
+//             if (err || !row) return;
+//             const task_id = row.task_id;
+
+//             db.get(
+//                 `SELECT COUNT(*) AS pending_count
+//                  FROM SUBTASKS
+//                  WHERE task_id = ? AND employee_id = ? AND status != 'completed'`,
+//                 [task_id, employeeId],
+//                 (err, result) => {
+//                     if (!err && result.pending_count === 0) {
+//                         db.run(`UPDATE TASK_ASSIGNMENTS SET status = 'completed' WHERE task_id = ? AND employee_id = ?`, [task_id, employeeId]);
+//                     }
+//                 }
+//             );
+//         });
+
+//         res.json({
+//             success: true,
+//             message: 'Subtask updated successfully',
+//             subtask: { id: subtask_id, status: normalizedStatus, employee_description: employee_description || '' }
+//         });
+//     });
+// };
 const updateSubtask = (req, res) => {
     const subtask_id = req.params.id;
     const employeeId = req.user.id;
@@ -85,6 +128,10 @@ const updateSubtask = (req, res) => {
     if (!status) return res.status(400).json({ success: false, message: 'Status required' });
 
     const normalizedStatus = status.toLowerCase();
+    
+    // Console log check karne ke liye ki backend ko kya mil raha hai
+    console.log(`Updating Subtask: ID=${subtask_id}, Status=${normalizedStatus}`);
+
     const sql = `
         UPDATE SUBTASKS
         SET status = ?, employee_description = ?, updated_at = CURRENT_TIMESTAMP
@@ -92,22 +139,32 @@ const updateSubtask = (req, res) => {
     `;
 
     db.run(sql, [normalizedStatus, employee_description || '', subtask_id, employeeId], function(err) {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        if (this.changes === 0) return res.status(404).json({ success: false, message: 'Subtask not found or not yours' });
+        if (err) {
+            console.error("SQL Error:", err.message);
+            return res.status(500).json({ success: false, message: err.message });
+        }
+        
+        if (this.changes === 0) {
+            return res.status(404).json({ success: false, message: 'Subtask not found or not yours' });
+        }
 
-        // Update TASK_ASSIGNMENTS status for this employee only
+        // --- TASK_ASSIGNMENTS UPDATE LOGIC ---
         db.get(`SELECT task_id FROM SUBTASKS WHERE id = ?`, [subtask_id], (err, row) => {
             if (err || !row) return;
             const task_id = row.task_id;
 
+            // 1. Check karo kya saare subtasks complete ho gaye?
             db.get(
-                `SELECT COUNT(*) AS pending_count
-                 FROM SUBTASKS
+                `SELECT COUNT(*) AS pending_count FROM SUBTASKS 
                  WHERE task_id = ? AND employee_id = ? AND status != 'completed'`,
                 [task_id, employeeId],
                 (err, result) => {
                     if (!err && result.pending_count === 0) {
+                        // Agar sab complete hain toh main assignment 'completed'
                         db.run(`UPDATE TASK_ASSIGNMENTS SET status = 'completed' WHERE task_id = ? AND employee_id = ?`, [task_id, employeeId]);
+                    } else if (normalizedStatus === 'in_progress') {
+                        // Agar ek bhi subtask 'in_progress' hua toh main assignment bhi 'in_progress'
+                        db.run(`UPDATE TASK_ASSIGNMENTS SET status = 'in_progress' WHERE task_id = ? AND employee_id = ?`, [task_id, employeeId]);
                     }
                 }
             );
@@ -120,7 +177,6 @@ const updateSubtask = (req, res) => {
         });
     });
 };
-
 // ---------------- GET TASKS FOR EMPLOYEE ----------------
 const getEmployeeTasks = (req, res) => {
     const employeeId = req.user.id;

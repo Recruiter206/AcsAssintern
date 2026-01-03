@@ -26,7 +26,8 @@ const EmployeeTask = () => {
   const loadTasks = async () => {
     try {
       const updatedTasks = await fetchEmployeeTasks();
-      setLocalTasks(updatedTasks);
+      // Ensure we set local tasks only if data exists
+      if(updatedTasks) setLocalTasks(updatedTasks);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
     }
@@ -38,14 +39,16 @@ const EmployeeTask = () => {
     const initialUpdates = {};
     const task = localTasks.find(t => t.task_id === taskId);
 
-    task.subtasks
-      .filter(sub => sub.employee_id === user.id && sub.status !== 'completed')
-      .forEach(sub => {
-        initialUpdates[sub.subtask_id] = {
-          description: sub.employee_description || '',
-          status: sub.status
-        };
-      });
+    if (task && task.subtasks) {
+        task.subtasks
+          .filter(sub => sub.status !== 'completed')
+          .forEach(sub => {
+            initialUpdates[sub.subtask_id] = {
+              description: sub.employee_description || '',
+              status: sub.status
+            };
+          });
+    }
 
     setSubtaskUpdates(initialUpdates);
   };
@@ -57,17 +60,20 @@ const EmployeeTask = () => {
     }));
   };
 
-  // Save updated subtasks
+  // Save updated subtasks - FIX: Using for loop for SQLite stability
   const handleSave = async () => {
     try {
-      const updatePromises = Object.keys(subtaskUpdates).map(subId => {
+      const subIds = Object.keys(subtaskUpdates);
+      
+      // Promise.all ki jagah loop use kar rahe hain taaki "Database Locked" error na aaye
+      for (const subId of subIds) {
         const { status, description } = subtaskUpdates[subId];
-        return updateSubtask(subId, status, description);
-      });
+        await updateSubtask(subId, status, description);
+      }
 
-      await Promise.all(updatePromises);
       setEditingTaskId(null);
-      await loadTasks(); // Reload tasks after update
+      setSubtaskUpdates({});
+      await loadTasks(); // Reload tasks after all updates are done
     } catch (err) {
       console.error('Failed to update subtasks:', err);
     }
@@ -83,34 +89,34 @@ const EmployeeTask = () => {
         <table className="min-w-full bg-white shadow-lg rounded-xl border border-gray-200">
           <thead className="bg-gradient-to-r from-blue-600 to-blue-400 text-white">
             <tr>
-              <th className="px-6 py-3 text-left font-semibold">Task ID</th>
-              <th className="px-6 py-3 text-left font-semibold">Start Date</th>
-              <th className="px-6 py-3 text-left font-semibold">End Date</th>
-              <th className="px-6 py-3 text-left font-semibold">Task</th>
-              <th className="px-6 py-3 text-left font-semibold">Description</th>
-              <th className="px-6 py-3 text-left font-semibold">Subtasks</th>
-              <th className="px-6 py-3 text-center font-semibold">Actions</th>
+              <th className="px-3 py-2 text-left text-sm">Task ID</th>
+              <th className="px-3 py-2 text-left text-sm">Start Date</th>
+              <th className="px-3 py-2 text-left text-sm">End Date</th>
+              <th className="px-3 py-2 text-left text-sm">Task</th>
+              <th className="px-3 py-2 text-left text-sm">Description</th>
+              <th className="px-3 py-2 text-left text-sm">Subtasks</th>
+              <th className="px-3 py-2 text-left text-sm">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {localTasks.map(task => (
               <tr key={task.task_id} className="hover:bg-gray-50 transition duration-150">
-                <td className="px-6 py-4 font-medium">{task.task_id}</td>
-                <td className="px-6 py-4 text-sm">{task.start_date}</td>
-                <td className="px-6 py-4 text-sm">{task.end_date}</td>
-                <td className="px-6 py-4 font-semibold">{task.title}</td>
-                <td className="px-6 py-4">{task.description}</td>
-                <td className="px-6 py-4 space-y-2">
-                  {task.subtasks.length > 0 ? task.subtasks.map(sub => {
+                <td className="px-3 py-3 font-medium">{task.task_id}</td>
+                <td className="px-3 py-3 text-gray-500 text-sm">{task.start_date}</td>
+                <td className="px-3 py-3 text-gray-500 text-sm">{task.end_date}</td>
+                <td className="px-3 py-3 text-gray-700 font-semibold">{task.title}</td>
+                <td className="px-3 py-3 text-gray-500">{task.description}</td>
+                <td className="px-3 py-3 space-y-1">
+                  {task.subtasks && task.subtasks.length > 0 ? task.subtasks.map(sub => {
                     const isCompleted = sub.status === 'completed';
                     const isEditing = editingTaskId === task.task_id && !isCompleted;
                     return (
                       <div
                         key={sub.subtask_id}
-                        className="flex flex-col sm:flex-row sm:justify-between items-center w-full"
+                        className="flex flex-col text-gray-500 text-sm sm:flex-row sm:justify-between items-center w-full"
                       >
-                        <div className="flex-1 gap-2">
-                          <p className="font-medium ">{sub.title}</p>
+                        <div className="flex-1 gap-1">
+                          <p className="font-medium  text-gray-500">{sub.title}</p>
                           {isEditing ? (
                             <input
                               value={subtaskUpdates[sub.subtask_id]?.description || ''}
@@ -119,7 +125,7 @@ const EmployeeTask = () => {
                               placeholder="Enter description..."
                             />
                           ) : (
-                            <p className={`text-sm  ${isCompleted ? 'text-sm mt-3' : 'text-gray-500 mt-3'}`}>
+                            <p className={`text-sm  ${isCompleted ? 'text-sm mt-3' : 'text-gray-300 mt-3'}`}>
                               {sub.employee_description || 'No description'}
                             </p>
                           )}
@@ -132,17 +138,17 @@ const EmployeeTask = () => {
                           >
                             <option value="completed">Completed</option>
                             <option value="pending">Pending</option>
-                            <option value="in progress">In Progress</option>
+                            <option value="in_progress">In Progress</option>
                           </select>
                         ) : (
                           <span
-                            className={`inline-block px-3 py-1 rounded-full text-sm font-medium mt-2 sm:mt-0 ${
+                            className={`inline-block px-2 py-1 mx-1 text-sm rounded-md mt-2 sm:mt-0 ${
                               isCompleted ? 'bg-green-100 text-green-800' :
-                              sub.status === 'in progress' ? 'bg-blue-100 text-blue-800' :
+                              sub.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
                               'bg-yellow-100 text-yellow-800'
                             }`}
                           >
-                            {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                            {sub.status.charAt(0).toUpperCase() + sub.status.slice(1).replace('_', ' ')}
                           </span>
                         )}
                       </div>
@@ -152,14 +158,14 @@ const EmployeeTask = () => {
                 <td className="px-6 py-4 flex flex-col sm:flex-row justify-center items-center gap-2">
                   <Link
                     to={`/add-subtask/${task.task_id}`}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition"
+                    className="bg-blue-600 text-white text-xs px-2 py-2 rounded-lg hover:bg-purple-600 transition"
                   >
                     Add Subtask
                   </Link>
-                  {task.subtasks.some(sub => sub.status !== 'completed') && (
+                  {task.subtasks && task.subtasks.some(sub => sub.status !== 'completed') && (
                     <button
                       onClick={() => handleStartEditing(task.task_id)}
-                      className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                      className="bg-yellow-500 text-xs  text-white px-2 py-2 rounded-lg hover:bg-yellow-600 transition"
                     >
                       Update Status
                     </button>
@@ -167,7 +173,7 @@ const EmployeeTask = () => {
                   {editingTaskId === task.task_id && (
                     <button
                       onClick={handleSave}
-                      className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                      className="bg-green-500 text-white px-2 py-2 rounded-lg hover:bg-green-600 transition"
                     >
                       Save
                     </button>

@@ -1,35 +1,23 @@
-import React, { createContext, useContext, useState } from 'react';
-import API from '../api/Api'; // axios instance
+
+
+import React, { createContext, useContext, useState } from "react";
+import API from "../api/Api";
 import { AuthContext } from "../auth/AuthContext";
 
-// Create Chat Context
 export const ChatContext = createContext();
 
-// Provider Component
 export const ChatProvider = ({ children }) => {
-  const { user } = useContext(AuthContext); // logged-in user
-  const [messages, setMessages] = useState([]);      // conversation messages
-  const [loading, setLoading] = useState(false);     // loading state
-  const [error, setError] = useState(null);          // error state
+  const { user } = useContext(AuthContext);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // ---------------- Send Message ----------------
-  const sendMessage = async (recipientId, message) => {
-    try {
-      const res = await API.post('/chat/send', { recipient_id: recipientId, message });
-      setMessages(prev => [...prev, res.data.data]);
-      return res.data;
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-      throw err;
-    }
-  };
-
-  // ---------------- Get Conversation ----------------
+  // Fetch conversation with selected user
   const getConversation = async (otherUserId) => {
     try {
       setLoading(true);
       const res = await API.get(`/chat/${otherUserId}`);
-      setMessages(res.data);
+      setMessages(res.data || []);
       setLoading(false);
       return res.data;
     } catch (err) {
@@ -39,23 +27,40 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // ---------------- Mark Messages as Read ----------------
+  // Send a new message
+  const sendMessage = async (recipientId, message) => {
+    try {
+      const res = await API.post("/chat/send", {
+        recipient_id: recipientId,
+        message,
+      });
+      setMessages((prev) => [...prev, res.data]); // append new message
+      return res.data;
+    } catch (err) {
+      setError(err.response?.data?.error || err.message);
+      throw err;
+    }
+  };
+
+  // Mark messages as read
   const markAsRead = async (otherUserId) => {
     try {
-      const res = await API.post('/chat/mark-read', { other_user_id: otherUserId });
-      return res.data;
+      await API.post("/chat/mark-read", { other_user_id: otherUserId });
+      setMessages((prev) =>
+        prev.map((msg) => ({ ...msg, read_status: "read" }))
+      );
     } catch (err) {
       setError(err.response?.data?.error || err.message);
-      throw err;
     }
   };
 
-  // ---------------- Edit Message ----------------
+  // Edit message
   const editMessage = async (messageId, newMessage) => {
     try {
-      const res = await API.put('/chat/edit', { message_id: messageId, new_message: newMessage });
+      const res = await API.put("/chat/edit", { message_id: messageId, new_message: newMessage });
+      // update messages in state
       setMessages(prev =>
-        prev.map(msg => (msg.id === messageId ? { ...msg, message: newMessage, edited: 'yes' } : msg))
+        prev.map(msg => msg.id === messageId ? { ...msg, message: newMessage, edited: 'yes' } : msg)
       );
       return res.data;
     } catch (err) {
@@ -64,13 +69,11 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // ---------------- Delete For Me ----------------
+  // Delete for me
   const deleteForMe = async (messageId) => {
     try {
-      const res = await API.put('/chat/delete-for-me', { message_id: messageId });
-      setMessages(prev =>
-        prev.map(msg => (msg.id === messageId ? { ...msg, deleted: true } : msg))
-      );
+      const res = await API.put("/chat/delete-for-me", { message_id: messageId });
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
       return res.data;
     } catch (err) {
       setError(err.response?.data?.error || err.message);
@@ -78,10 +81,10 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // ---------------- Delete For Everyone ----------------
+  // Delete for everyone
   const deleteForEveryone = async (messageId) => {
     try {
-      const res = await API.delete('/chat/delete-for-everyone', { data: { message_id: messageId } });
+      const res = await API.delete("/chat/delete-for-everyone", { data: { message_id: messageId } });
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
       return res.data;
     } catch (err) {
@@ -94,6 +97,7 @@ export const ChatProvider = ({ children }) => {
     <ChatContext.Provider
       value={{
         messages,
+        setMessages,
         loading,
         error,
         sendMessage,
@@ -102,7 +106,6 @@ export const ChatProvider = ({ children }) => {
         editMessage,
         deleteForMe,
         deleteForEveryone,
-        setMessages,
       }}
     >
       {children}
