@@ -1,186 +1,7 @@
-
-// import React, { useState, useEffect, useRef, useContext } from "react";
-// import { ChatContext } from "../Chatcontext/ChateContext";
-// import { AuthContext } from "../auth/AuthContext";
-
-// const AdminChat = () => {
-//   const { user, employees, fetchEmployees } = useContext(AuthContext);
-//   const {
-//     messages,
-//     loading,
-//     sendMessage,
-//     getConversation,
-//     markAsRead,
-//     addMessageToState,
-//   } = useContext(ChatContext);
-
-//   const [selectedEmployee, setSelectedEmployee] = useState(null);
-//   const [newMessage, setNewMessage] = useState("");
-//   const messagesEndRef = useRef(null);
-
-//   // Fetch employees on mount
-//   useEffect(() => {
-//     fetchEmployees();
-//   }, []);
-
-//   // Fetch conversation & mark as read when selecting employee
-//   useEffect(() => {
-//     if (selectedEmployee) {
-//       getConversation(selectedEmployee.id);
-//       markAsRead(selectedEmployee.id);
-//     }
-//   }, [selectedEmployee]);
-
-//   // Auto-scroll to bottom when messages change
-//   useEffect(() => {
-//     if (messagesEndRef.current) {
-//       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-//     }
-//   }, [messages, selectedEmployee]);
-
-//   // Filter messages for selected employee
-//   const conversation = selectedEmployee
-//     ? messages.filter(
-//         (msg) =>
-//           (msg.senderId === selectedEmployee.id &&
-//             msg.receiverId === user.id) ||
-//           (msg.senderId === user.id && msg.receiverId === selectedEmployee.id)
-//       )
-//     : [];
-
-//   // Count unread messages
-//   const getUnreadCount = (employeeId) => {
-//     return messages.filter(
-//       (msg) => msg.senderId === employeeId && !msg.read
-//     ).length;
-//   };
-
-//   // Handle sending message
-//   const handleSend = () => {
-//     if (!newMessage.trim() || !selectedEmployee) return;
-
-//     const messageData = {
-//       senderId: user.id,
-//       receiverId: selectedEmployee.id,
-//       text: newMessage.trim(),
-//       timestamp: new Date().toISOString(),
-//       read: false,
-//     };
-
-//     // Update UI immediately
-//     addMessageToState(messageData);
-
-//     // Send to backend
-//     sendMessage(selectedEmployee.id, newMessage).catch((err) =>
-//       console.error("Send message error:", err)
-//     );
-
-//     setNewMessage("");
-//   };
-
-//   const handleKeyPress = (e) => {
-//     if (e.key === "Enter") handleSend();
-//   };
-
-//   return (
-//     <div className="flex h-screen bg-gray-100">
-//       {/* Sidebar */}
-//       <div className="w-1/3 border-r bg-white overflow-y-auto">
-//         <h2 className="p-4 font-bold text-gray-700">Employees</h2>
-//         {employees.length === 0 ? (
-//           <p className="p-4 text-gray-500">No employees found</p>
-//         ) : (
-//           employees.map((emp) => {
-//             const unreadCount = getUnreadCount(emp.id);
-//             return (
-//               <div
-//                 key={emp.id}
-//                 onClick={() => setSelectedEmployee(emp)}
-//                 className={`cursor-pointer p-4 border-b flex justify-between items-center hover:bg-gray-100 ${
-//                   selectedEmployee?.id === emp.id ? "bg-blue-100" : ""
-//                 }`}
-//               >
-//                 <span>{emp.name}</span>
-//                 {unreadCount > 0 && (
-//                   <span className="bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">
-//                     {unreadCount}
-//                   </span>
-//                 )}
-//               </div>
-//             );
-//           })
-//         )}
-//       </div>
-
-//       {/* Chat Area */}
-//       <div className="flex-1 flex flex-col">
-//         {/* Chat Header */}
-//         <div className="p-4 border-b bg-white">
-//           <h2 className="font-bold text-gray-700">
-//             {selectedEmployee ? selectedEmployee.name : "Select an employee"}
-//           </h2>
-//         </div>
-
-//         {/* Messages */}
-//         <div className="flex-1 p-4 overflow-y-auto">
-//           {loading ? (
-//             <p className="text-gray-500">Loading messages...</p>
-//           ) : selectedEmployee ? (
-//             conversation.map((msg, index) => (
-//               <div
-//                 key={index}
-//                 className={`mb-2 flex ${
-//                   msg.senderId === user.id ? "justify-end" : "justify-start"
-//                 }`}
-//               >
-//                 <div
-//                   className={`p-2 rounded-lg max-w-xs ${
-//                     msg.senderId === user.id
-//                       ? "bg-blue-500 text-white"
-//                       : "bg-gray-200 text-gray-800"
-//                   }`}
-//                 >
-//                   {msg.text}
-//                 </div>
-//               </div>
-//             ))
-//           ) : (
-//             <p className="text-gray-500">No conversation selected</p>
-//           )}
-//           <div ref={messagesEndRef} />
-//         </div>
-
-//         {/* Message Input */}
-//         {selectedEmployee && (
-//           <div className="p-4 border-t bg-white flex">
-//             <input
-//               type="text"
-//               className="flex-1 border rounded px-3 py-2 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-//               placeholder="Type your message..."
-//               value={newMessage}
-//               onChange={(e) => setNewMessage(e.target.value)}
-//               onKeyPress={handleKeyPress}
-//             />
-//             <button
-//               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-//               onClick={handleSend}
-//             >
-//               Send
-//             </button>
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminChat;
-
-
-
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { ChatContext } from "../Chatcontext/ChateContext";
 import { AuthContext } from "../auth/AuthContext";
+import { toast } from "react-toastify";
 
 const AdminChat = () => {
   const { user, employees, fetchEmployees } = useContext(AuthContext);
@@ -193,13 +14,15 @@ const AdminChat = () => {
     setMessages,
     editMessage,
     deleteForMe,
-    deleteForEveryone
+    deleteForEveryone,
+   
+  
   } = useContext(ChatContext);
 
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [newMessage, setNewMessage] = useState("");
-  const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editingText, setEditingText] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState("");
   const messagesEndRef = useRef(null);
 
   useEffect(() => { fetchEmployees(); }, []);
@@ -207,7 +30,6 @@ const AdminChat = () => {
   useEffect(() => {
     if (!selectedEmployee) return;
     setMessages([]);
-
     const fetchChat = async () => {
       try {
         await getConversation(selectedEmployee.id);
@@ -224,150 +46,177 @@ const AdminChat = () => {
   }, [messages]);
 
   const handleSend = async () => {
-    const text = newMessage.trim();
-    if (!text || !selectedEmployee) return;
+    if (!newMessage.trim() || !selectedEmployee) return;
+    const text = newMessage;
     setNewMessage("");
-    try { await sendMessage(selectedEmployee.id, text); } 
-    catch (err) { console.error("Failed to send message:", err); }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      if (editingMessageId) handleEditSave();
-      else handleSend();
+    try {
+      await sendMessage(selectedEmployee.id, text);
+    } catch (err) {
+      toast.error("Failed to send message");
     }
   };
 
-  const handleEditSave = async () => {
-    if (!editingText.trim()) return;
-    await editMessage(editingMessageId, editingText);
-    setEditingMessageId(null);
-    setEditingText("");
+  const handleEditSave = async (msgId) => {
+    if (!editText.trim()) return;
+    try {
+      await editMessage(msgId, editText);
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, message: editText } : m));
+      setEditingId(null);
+    } catch (err) {
+      toast.error("Edit failed");
+    }
   };
 
   const getUnreadCount = (empId) =>
     messages.filter(m => Number(m.sender_id) === Number(empId) && m.read_status !== "read").length;
 
   return (
-    <div className="flex h-screen bg-[#e5ddd5]">
-      {/* Sidebar */}
-      <div className="w-1/3 border-r bg-white overflow-y-auto">
-        <h2 className="p-4 font-bold border-b">Employees</h2>
-        {employees.map(emp => {
-          const unread = getUnreadCount(emp.id);
-          return (
-            <div
-              key={emp.id}
-              onClick={() => setSelectedEmployee(emp)}
-              className={`cursor-pointer p-4 border-b flex justify-between items-center hover:bg-gray-100 ${
-                selectedEmployee?.id === emp.id ? "bg-green-100" : ""
-              }`}
-            >
-              <span>{emp.name}</span>
-              {unread > 0 && (
-                <span className="bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">{unread}</span>
-              )}
-            </div>
-          );
-        })}
+    <div className="flex h-[calc(100vh-102px)] w-full overflow-hidden bg-white">
+      
+      {/* --- SIDEBAR: Left Side --- */}
+      <div className="w-1/4 min-w-[280px] border-r flex flex-col h-full bg-gray-50">
+        {/* <div className="p-4 border-b bg-white font-bold text-gray-700">Employees</div> */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {employees.map((emp) => {
+            const unread = getUnreadCount(emp.id);
+            return (
+              <div
+                key={emp.id}
+                onClick={() => setSelectedEmployee(emp)}
+                className={`p-4 border-b cursor-pointer transition-all flex items-center justify-between ${
+                  selectedEmployee?.id === emp.id 
+                  ? "bg-sky-100 border-r-4 border-sky-600" 
+                  : "hover:bg-gray-100"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sky-800 text-white flex items-center justify-center font-bold shadow-sm">
+                    {emp.name.charAt(0)}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-semibold ${selectedEmployee?.id === emp.id ? "text-sky-900" : "text-gray-700"}`}>
+                      {emp.name}
+                    </p>
+                    <p className="text-xs text-gray-500">View Chat</p>
+                  </div>
+                </div>
+                {/* Unread Badge */}
+                {unread > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {unread}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
-        <div className="p-4 border-b bg-white">
-          <h2 className="font-bold text-gray-700">
-            {selectedEmployee ? selectedEmployee.name : "Select an employee"}
-          </h2>
-        </div>
+      {/* --- CHAT AREA: Right Side --- */}
+      <div className="flex-1 flex flex-col h-full bg-[#e5ddd5] overflow-hidden">
+        {selectedEmployee ? (
+          <>
+            {/* Header
+            <div className="p-4 border-b bg-white flex items-center shadow-sm z-10">
+              <h2 className="font-bold text-gray-700">{selectedEmployee.name}</h2>
+            </div> */}
 
-        <div className="flex-1 p-4 overflow-y-auto space-y-2">
-          {loading ? (
-            <p className="text-gray-500">Loading...</p>
-          ) : selectedEmployee && messages.length > 0 ? (
-            messages
-              .slice()
-              .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-              .map(msg => {
-                const isMe = Number(msg.sender_id) === Number(user.id);
-                const isEditing = editingMessageId === msg.id;
+            {/* Message List */}
+            <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-3">
+              {loading ? (
+                <div className="flex justify-center mt-10"><span className="bg-white px-4 py-1 rounded-full shadow text-sm">Loading...</span></div>
+              ) : (
+                messages.map((msg) => {
+                  const isMe = Number(msg.sender_id) === Number(user.id);
+                  const isEditing = editingId === msg.id;
 
-                return (
-                  <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                    <div className={`px-3 py-2 rounded-lg max-w-xs shadow text-sm break-words ${
-                      isMe ? "bg-[#dcf8c6] rounded-br-none" : "bg-white rounded-bl-none"
-                    }`}>
+                  return (
+                    <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div className={`px-3 py-2 rounded-lg max-w-[75%] shadow-sm text-sm ${
+                        isMe ? "bg-[#dcf8c6] rounded-br-none" : "bg-white rounded-bl-none"
+                      }`}>
+                        {isEditing ? (
+                          <div className="flex flex-col gap-2">
+                            <input
+                              value={editText}
+                              onChange={(e) => setEditText(e.target.value)}
+                              className="p-1 border rounded text-black outline-none"
+                              autoFocus
+                            />
+                            <div className="flex gap-2">
+                              <button onClick={() => handleEditSave(msg.id)} className="text-[10px] text-green-700 font-bold">Save</button>
+                              <button onClick={() => setEditingId(null)} className="text-[10px] text-gray-500">Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="break-words">{msg.message}</p>
+                            <div className="text-[9px] text-gray-500 text-right mt-1 flex justify-end gap-1">
+                              {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {isMe && (
+                                <span className={msg.read_status === "read" ? "text-blue-500" : "text-gray-400"}>
+                                  {msg.read_status === "read" ? "✔✔" : "✔"}
+                                </span>
+                              )}
+                            </div>
 
-                      {/* Inline editing */}
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editingText}
-                          onChange={e => setEditingText(e.target.value)}
-                          onKeyDown={handleKeyPress}
-                          className="border px-2 py-1 rounded w-full"
-                          autoFocus
-                        />
-                      ) : (
-                        <span>{msg.message}</span>
-                      )}
-
-                      <div className="text-[10px] text-gray-500 text-right mt-1">
-                        {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        {isMe && (msg.read_status === "read" ? "✔✔" : "✔")}
+                            {/* Actions Buttons for Admin (isMe) */}
+                            {isMe && (
+                              <div className="flex gap-3 mt-2 pt-1 border-t border-black/5">
+                                <button 
+                                  onClick={() => { setEditingId(msg.id); setEditText(msg.message); }}
+                                  className="text-[10px] text-blue-600 font-semibold"
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  onClick={() => deleteForMe(msg.id)}
+                                  className="text-[10px] text-red-500 font-semibold"
+                                >
+                                  For Me
+                                </button>
+                                <button 
+                                  onClick={() => deleteForEveryone(msg.id)}
+                                  className="text-[10px] text-red-700 font-bold"
+                                >
+                                  Everyone
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
-
-                      {/* Edit/Delete buttons */}
-                      {isMe && !isEditing && (
-                        <div className="flex gap-2 mt-1">
-                          <button
-                            className="text-blue-500 text-xs"
-                            onClick={() => { setEditingMessageId(msg.id); setEditingText(msg.message); }}
-                          >
-                            Edit
-                          </button>
-                          <button className="text-red-500 text-xs" onClick={() => deleteForMe(msg.id)}>
-                            Delete For Me
-                          </button>
-                          <button className="text-red-700 text-xs" onClick={() => deleteForEveryone(msg.id)}>
-                            Delete For Everyone
-                          </button>
-                        </div>
-                      )}
-
-                      {isEditing && (
-                        <div className="flex gap-2 mt-1">
-                          <button className="text-green-500 text-xs" onClick={handleEditSave}>
-                            Save
-                          </button>
-                          <button className="text-gray-500 text-xs" onClick={() => setEditingMessageId(null)}>
-                            Cancel
-                          </button>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                );
-              })
-          ) : (
-            <p className="text-gray-500">No conversation</p>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+                  );
+                })
+              )}
+              <div ref={messagesEndRef} />
+            </div>
 
-        {/* Input */}
-        {selectedEmployee && (
-          <div className="p-3 border-t bg-white flex gap-2">
-            <input
-              type="text"
-              placeholder="Type a message..."
-              value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyPress}
-              className="flex-1 border rounded-full px-4 py-2 outline-none"
-            />
-            <button onClick={handleSend} className="bg-blue-500 text-white px-5 py-2 rounded-full">
-              Send
-            </button>
+            {/* Input Field */}
+            <div className="p-3 bg-[#f0f0f0] border-t flex gap-2 items-center">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                placeholder="Type a message..."
+                className="flex-1 px-4 py-2.5 rounded-full border-none outline-none focus:ring-2 focus:ring-sky-600 shadow-sm"
+              />
+              <button 
+                onClick={handleSend}
+                className="bg-sky-800 text-white p-2.5 rounded-full hover:bg-sky-900 shadow-md"
+              >
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                </svg>
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+             <div className="text-6xl mb-4">💬</div>
+             <p className="text-lg font-medium">Select an employee to start messaging</p>
           </div>
         )}
       </div>
@@ -376,3 +225,6 @@ const AdminChat = () => {
 };
 
 export default AdminChat;
+
+
+
