@@ -11,14 +11,34 @@ export const ChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [chatList, setChatList] = useState([]);
 
-  // Fetch conversation with selected user
-  const getConversation = async (otherUserId) => {
+
+  // <---  NEW: Fetch Employees/Admins with Unread Counts ---
+  const fetchChatList = async () => {
+    try {
+      setLoading(true);
+      const res = await API.get("/chat/chat-list"); 
+      setChatList(res.data || []);
+      setLoading(false);
+    } catch (err) {
+      setError(err.response?.data?.error || err.message);
+      setLoading(false);
+    }
+  };
+
+ const getConversation = async (otherUserId) => {
     try {
       setLoading(true);
       const res = await API.get(`/chat/${otherUserId}`);
       setMessages(res.data || []);
       setLoading(false);
+      
+      // When opening a conversation, reset its count locally for instant UX
+      setChatList(prev => 
+        prev.map(item => item.id === otherUserId ? { ...item, unread_count: 0 } : item)
+      );
+      
       return res.data;
     } catch (err) {
       setError(err.response?.data?.error || err.message);
@@ -27,22 +47,49 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Send a new message
-  const sendMessage = async (recipientId, message) => {
+
+
+const getFileUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+
+  // Industry Standard: Extract the domain from Axios instance
+  // This turns "http://localhost:5000/api" into "http://localhost:5000"
+  const baseUrl = API.defaults.baseURL.split('/api')[0]; 
+  
+  return `${baseUrl}${path}`;
+};
+  // UPDATED: Support for Files and Emojis via FormData
+  const sendMessage = async (recipientId, message, file = null) => {
     try {
-      const res = await API.post("/chat/send", {
-        recipient_id: recipientId,
-        message,
-      });
-      setMessages((prev) => [...prev, res.data]); // append new message
+      // 1. Frontend File Size Restriction (2026 UX Standard)
+      if (file && file.size > 5 * 1024 * 1024) {
+        throw new Error("File is too large. Max limit is 5MB.");
+      }
+
+      // 2. Prepare FormData
+      const formData = new FormData();
+      formData.append("recipient_id", recipientId);
+      
+      // If message contains emojis, append normally as string
+      if (message) formData.append("message", message);
+      
+      // Append file if it exists
+      if (file) formData.append("file", file);
+
+      // 3. Post to API
+      // Note: Do NOT set Content-Type manually, Axios does it for FormData
+      const res = await API.post("/chat/send", formData);
+      
+      setMessages((prev) => [...prev, res.data]);
       return res.data;
     } catch (err) {
-      setError(err.response?.data?.error || err.message);
-      throw err;
+      const errorMsg = err.response?.data?.error || err.message;
+      setError(errorMsg);
+      throw new Error(errorMsg);
     }
   };
 
-  // Mark messages as read
   const markAsRead = async (otherUserId) => {
     try {
       await API.post("/chat/mark-read", { other_user_id: otherUserId });
@@ -54,11 +101,9 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Edit message
   const editMessage = async (messageId, newMessage) => {
     try {
       const res = await API.put("/chat/edit", { message_id: messageId, new_message: newMessage });
-      // update messages in state
       setMessages(prev =>
         prev.map(msg => msg.id === messageId ? { ...msg, message: newMessage, edited: 'yes' } : msg)
       );
@@ -69,24 +114,20 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  // Delete for me
   const deleteForMe = async (messageId) => {
     try {
-      const res = await API.put("/chat/delete-for-me", { message_id: messageId });
+      await API.put("/chat/delete-for-me", { message_id: messageId });
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
-      return res.data;
     } catch (err) {
       setError(err.response?.data?.error || err.message);
       throw err;
     }
   };
 
-  // Delete for everyone
   const deleteForEveryone = async (messageId) => {
     try {
-      const res = await API.delete("/chat/delete-for-everyone", { data: { message_id: messageId } });
+      await API.delete("/chat/delete-for-everyone", { data: { message_id: messageId } });
       setMessages(prev => prev.filter(msg => msg.id !== messageId));
-      return res.data;
     } catch (err) {
       setError(err.response?.data?.error || err.message);
       throw err;
@@ -96,16 +137,19 @@ export const ChatProvider = ({ children }) => {
   return (
     <ChatContext.Provider
       value={{
-        messages,
+        messages,       
+        chatList, 
         setMessages,
         loading,
         error,
+        fetchChatList,
         sendMessage,
         getConversation,
         markAsRead,
         editMessage,
         deleteForMe,
         deleteForEveryone,
+        getFileUrl
       }}
     >
       {children}

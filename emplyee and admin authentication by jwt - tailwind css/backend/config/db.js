@@ -5,7 +5,7 @@ const db = new sqlite3.Database('./database.db', (err) => {
   if (err) console.error('Failed to connect to database:', err.message);
   else {
     console.log('Connected to SQLite database.');
-    db.run("PRAGMA encoding = 'UTF-8'"); // Yeh line emojis ki safety ensure karti hai
+    db.run("PRAGMA encoding = 'UTF-8'"); 
   }
 });
 
@@ -77,14 +77,17 @@ db.run(`
 `);
 
 
-// CHAT TABLE
+
 db.run(`CREATE TABLE IF NOT EXISTS admin_employee_chat (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     admin_id INTEGER NOT NULL,
     employee_id INTEGER NOT NULL,
     sender_id INTEGER NOT NULL,
     sender_type TEXT NOT NULL,
-    message TEXT NOT NULL,
+    message TEXT, -- Can be null if it's only a file
+    file_path TEXT, -- URL or local path to the file
+    file_name TEXT, 
+    file_type TEXT, -- e.g., 'image/png', 'application/pdf'
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     read_status TEXT DEFAULT 'unread' CHECK(read_status IN ('unread','read')),
     edited TEXT DEFAULT 'no',
@@ -94,5 +97,6 @@ db.run(`CREATE TABLE IF NOT EXISTS admin_employee_chat (
     FOREIGN KEY(employee_id) REFERENCES USERS(id),
     FOREIGN KEY(sender_id) REFERENCES USERS(id)
 )`);
+
 
 module.exports = db;

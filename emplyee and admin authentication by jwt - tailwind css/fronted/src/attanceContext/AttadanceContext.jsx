@@ -101,7 +101,9 @@ const AttendanceProvider = ({ children }) => {
         error,
         message,
         fetchAttendance,
-        markAttendance,fetchAttendances,updateAttendanceStatuses
+        markAttendance,
+        fetchAttendances,
+        updateAttendanceStatuses
       }}
     >
       {children}

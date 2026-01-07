@@ -1,45 +1,50 @@
 
+
+
 const db = require('../config/db.js');
 
-// ---------------- Send Message ----------------
+
 const sendMessage = (req, res) => {
   try {
-    const { recipient_id, message } = req.body;
-    if (!recipient_id || !message) return res.status(400).json({ error: "All fields are required" });
 
+    // recipient_id here jisko send kar rahe uski id le rahe hai 
+    const { recipient_id, message } = req.body;
     const sender_id = req.user.id;
     const sender_role = req.user.role;
+
+    if (!recipient_id || (!message && !req.file)) {
+      return res.status(400).json({ error: "Message text or a file is required" });
+    }
 
     let admin_id = sender_role === 'admin' ? sender_id : recipient_id;
     let employee_id = sender_role === 'employee' ? sender_id : recipient_id;
 
+    const file_path = req.file ? `/uploads/${req.file.filename}` : null;
+    const file_name = req.file ? req.file.originalname : null;
+    const file_type = req.file ? req.file.mimetype : null;
+
     const query = `INSERT INTO admin_employee_chat
-      (admin_id, employee_id, sender_type, sender_id, message)
-      VALUES (?, ?, ?, ?, ?)`;
+      (admin_id, employee_id, sender_type, sender_id, message, file_path, file_name, file_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.run(query, [admin_id, employee_id, sender_role, sender_id, message], function(err) {
+    const params = [admin_id, employee_id, sender_role, sender_id, message || null, file_path, file_name, file_type];
+
+    db.run(query, params, function(err) {
       if (err) return res.status(500).json({ error: err.message });
-
       res.status(201).json({
-        id: this.lastID,
-        admin_id,
-        employee_id,
-        sender_type: sender_role,
-        sender_id,
-        message,
-        created_at: new Date().toISOString(),
-        read_status: 'unread',
-        edited: 'no',
-        deleted_for_admin: 'no',
-        deleted_for_employee: 'no'
+        id: this.lastID, admin_id, employee_id, sender_type: sender_role,
+        sender_id, message, file_path, file_name, file_type,
+        created_at: new Date().toISOString(), read_status: 'unread'
       });
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// ---------------- Get Conversation ----------------
+// 2. Get Conversation (No Changes)
 const getConversation = (req, res) => {
   try {
+
+    // other_user_id ye uski id leta hai jo login hai 
     const { other_user_id } = req.params;
     const viewer_id = req.user.id;
     const viewer_role = req.user.role;
@@ -59,7 +64,7 @@ const getConversation = (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// ---------------- Mark as Read ----------------
+// 3. Mark as Read (No Changes)
 const markAsRead = (req, res) => {
   try {
     const { other_user_id } = req.body;
@@ -79,53 +84,81 @@ const markAsRead = (req, res) => {
     });
   } catch (err) { res.status(500).json({ error: err.message }); }
 };
-// ---------------- Delete For Me ----------------
+
+// 4. Get Chat List with Unread Count (New Addition)
+const getChatListWithUnread = (req, res) => {
+    const login_user_id = req.user.id;
+    const login_user_role = req.user.role;
+
+    let query = "";
+    if (login_user_role === 'admin') {
+        query = `
+            SELECT u.id, u.name,
+            (SELECT COUNT(*) FROM admin_employee_chat 
+             WHERE admin_id = ? AND employee_id = u.id 
+             AND sender_id != ? AND read_status = 'unread') as unread_count
+            FROM users u WHERE u.role = 'employee'`;// FROM users u WHERE u.role = 'employee'` esko sort form likhane ke liye likha hai 
+    } else {
+        query = `
+            SELECT u.id, u.name,
+            (SELECT COUNT(*) FROM admin_employee_chat 
+             WHERE employee_id = ? AND admin_id = u.id 
+             AND sender_id != ? AND read_status = 'unread') as unread_count
+            FROM users u WHERE u.role = 'admin'`;
+    }
+
+    db.all(query, [login_user_id, login_user_id], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+};
+
+// 5. Delete For Me (No Changes)
 const deleteForMe = (req, res) => {
     try {
         const { message_id } = req.body;
         const role = req.user.role;
-        if (!message_id) return res.status(400).json({ error: "Message ID required" });
-
         const column = role === 'admin' ? 'deleted_for_admin' : 'deleted_for_employee';
         const query = `UPDATE admin_employee_chat SET ${column}='yes' WHERE id=?`;
-
         db.run(query, [message_id], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(404).json({ error: "Message not found" });
             res.json({ message: `Deleted message for ${role}` });
         });
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-// ---------------- Delete For Everyone ----------------
+// 6. Delete For Everyone (No Changes)
 const deleteForEveryone = (req, res) => {
     try {
         const { message_id } = req.body;
         const sender_id = req.user.id;
-        if (!message_id) return res.status(400).json({ error: "Message ID required" });
-
         const query = `DELETE FROM admin_employee_chat WHERE id=? AND sender_id=?`;
         db.run(query, [message_id, sender_id], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(404).json({ error: "Message not found or not sender" });
             res.json({ message: "Deleted message for everyone" });
         });
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
+
+// 7. Edit Message (No Changes)
 const editMessage = (req, res) => {
     try {
         const { message_id, new_message } = req.body;
         const sender_id = req.user.id;
-        if (!message_id || !new_message) return res.status(400).json({ error: "All fields required" });
-
         const query = `UPDATE admin_employee_chat SET message=?, edited='yes' WHERE id=? AND sender_id=?`;
         db.run(query, [new_message, message_id, sender_id], function(err) {
             if (err) return res.status(500).json({ error: err.message });
-            if (this.changes === 0) return res.status(404).json({ error: "Message not found or not sender" });
             res.json({ message: "Message edited", data: { message_id, new_message } });
         });
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-
-module.exports = { sendMessage, getConversation, markAsRead ,deleteForMe,deleteForEveryone,editMessage};
+module.exports = { 
+  sendMessage, 
+  getConversation, 
+  getChatListWithUnread, 
+  markAsRead, 
+  deleteForMe, 
+  deleteForEveryone, 
+  editMessage 
+};

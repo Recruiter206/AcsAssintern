@@ -96,7 +96,9 @@ const handleSave = async () => {
   try {
     const subIds = Object.keys(subtaskUpdates);
     
-    // Use Promise.all to run all updates in parallel
+    if (subIds.length === 0) return; // Kuch change nahi hua toh exit karein
+
+    // Saare updates ek saath bhej rahe hain
     await Promise.all(
       subIds.map(subId => {
         const { status, description } = subtaskUpdates[subId];
@@ -104,21 +106,19 @@ const handleSave = async () => {
       })
     );
 
-    // 1. Reset states after ALL promises resolve
+    // Jab saare updates successfully ho jayein
     setEditingTaskId(null);
     setSubtaskUpdates({});
-    
-    // 2. Refresh the list
     await loadTasks();
 
-    // 3. Trigger toast HERE (only once) instead of inside updateSubtask context
-    // toast.success("Tasks updated successfully!"); 
+   
 
   } catch (err) {
     console.error('Failed to update subtasks:', err);
-    // toast.error("Failed to update some tasks");
+   
   }
 };
+
 
   if (!user) return <p className="text-center mt-10 text-gray-500">Loading user...</p>;
 

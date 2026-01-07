@@ -9,3 +9,9 @@ body {
   @apply font-sans;
 }
 
+/* Add this to your main CSS file */
+.break-words {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", 
+               "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", 
+               sans-serif;
+}

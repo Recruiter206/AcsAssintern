@@ -1,5 +1,6 @@
 
 
+
 import React, { useContext, useEffect, useState } from "react";
 import { TaskContext } from "../../TaskContext/TaskContext";
 
@@ -69,7 +70,7 @@ const TaskList = () => {
           }
 
           const search = searchTerm.toLowerCase();
-          const empMatch = emp.name.toLowerCase().includes(search);
+          const empMatch = emp.name?.toLowerCase().includes(search);
           const taskNameMatch = task.title.toLowerCase().includes(search);
 
           // Subtasks filter + search check
