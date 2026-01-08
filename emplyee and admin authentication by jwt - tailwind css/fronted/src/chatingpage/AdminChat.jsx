@@ -149,12 +149,14 @@ const AdminChat = () => {
               <div
                 key={emp.id}
                 onClick={() => setSelectedEmployee(emp)}
-                className={`p-4 border-b cursor-pointer transition-all flex justify-between items-center ${isSelected ? "bg-sky-100 border-r-4 border-sky-600" : "hover:bg-gray-100"
+                className={`py-3 px-3 border-b cursor-pointer transition-all flex justify-between items-center ${isSelected ? "bg-sky-100 border-r-4 border-sky-600" : "hover:bg-gray-100"
                   }`}
               >
-                <div className="flex flex-col">
-                  <p className="font-semibold text-gray-700">{emp.name}</p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-tighter">{emp.role}</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center font-bold text-white uppercase">
+                    {emp.name.charAt(0)}
+                  </div>
+                  <span className="font-semibold text-gray-700">{emp.name}</span>
                 </div>
                 {unreadCount > 0 && (
                   <span className="bg-[#25d366] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">

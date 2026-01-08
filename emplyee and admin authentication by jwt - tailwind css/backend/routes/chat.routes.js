@@ -8,7 +8,12 @@ const upload = require('../Middleware/upload.middleware.js');
 
 // This single line handles both plain text and file uploads
 router.get('/chat-list', auth, chatController.getChatListWithUnread);
-router.post('/send', auth, upload.single('file'), chatController.sendMessage);
+
+// it allow single file sending 
+// router.post('/send', auth, upload.single('file'), chatController.sendMessage);
+
+// it allow multiple file sharing 
+router.post('/send', auth, upload.array('files'), chatController.sendMessage);
 
 router.get('/:other_user_id', auth, chatController.getConversation);
 router.post('/mark-read', auth, chatController.markAsRead);

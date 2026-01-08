@@ -78,24 +78,30 @@ db.run(`
 
 
 
+// Corrected admin_employee_chat TABLE
+
 db.run(`CREATE TABLE IF NOT EXISTS admin_employee_chat (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     admin_id INTEGER NOT NULL,
     employee_id INTEGER NOT NULL,
     sender_id INTEGER NOT NULL,
-    sender_type TEXT NOT NULL,
-    message TEXT, -- Can be null if it's only a file
-    file_path TEXT, -- URL or local path to the file
-    file_name TEXT, 
-    file_type TEXT, -- e.g., 'image/png', 'application/pdf'
+    message TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     read_status TEXT DEFAULT 'unread' CHECK(read_status IN ('unread','read')),
-    edited TEXT DEFAULT 'no',
-    deleted_for_admin TEXT DEFAULT 'no',
-    deleted_for_employee TEXT DEFAULT 'no',
     FOREIGN KEY(admin_id) REFERENCES USERS(id),
     FOREIGN KEY(employee_id) REFERENCES USERS(id),
     FOREIGN KEY(sender_id) REFERENCES USERS(id)
+)`);
+
+// Corrected chat_attachments TABLE
+db.run(`CREATE TABLE IF NOT EXISTS chat_attachments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id INTEGER NOT NULL,
+    file_path TEXT NOT NULL,
+    file_name TEXT, 
+    file_type TEXT,
+    file_size INTEGER,
+    FOREIGN KEY(chat_id) REFERENCES admin_employee_chat(id) ON DELETE CASCADE
 )`);
 
 
